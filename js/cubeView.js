@@ -95,7 +95,6 @@ var CubeView = (function (window, document) {
         }
     }
     /*
-     * 초기 조건: markup의 순서와 동일하게 유지 됨
      * face  : rotate(xdeg, ydeg)
      * top   : 0
      * front : 1
@@ -103,8 +102,6 @@ var CubeView = (function (window, document) {
      * back  : 3
      * left  : 4
      * bottom: 5
-     * 기준하나 양축으로 180도 회전하면 같으니 하나 추가
-     * 각 면별로 첫번째 나오는 것이 사용자 입장에서 name tag가 아래로 향하는 올바른 모습으로 보이는 각도임
      */
     var initialFaceDeg = [
         {faceIdx: 0, x: 270,y: 0  },//top
@@ -116,8 +113,8 @@ var CubeView = (function (window, document) {
         {faceIdx: 1, x: 180,y: 180},//front
         {faceIdx: 2, x: 0,  y: 270},//right
         {faceIdx: 2, x: 180,y: 90 },//right
-        {faceIdx: 3, x: 0,  y: 180},//back은 x축 180 회전
-        {faceIdx: 3, x: 180,y: 0  },//back y축 180 회전하는 두가지 경우
+        {faceIdx: 3, x: 0,  y: 180},//back
+        {faceIdx: 3, x: 180,y: 0  },//back
         {faceIdx: 4, x: 0,  y: 90 },//left
         {faceIdx: 4, x: 180,y: 270},//left
         {faceIdx: 5, x: 90, y: 0  },//bottom
@@ -129,13 +126,12 @@ var CubeView = (function (window, document) {
     //constructor
     function CubeView (el, options) {
         var i, tmp;
-        // this.viewport = typeof el === 'string' ? document.querySelector(el) : el;
         this.viewport = el;
         this.cube = this.viewport.children[0];
         this.faceStyles = [];
 
         this.faces = [];
-        //육면체 loading
+        //all faces are loaded
         this.faces.push(this.viewport.getElementsByClassName('face top')[0]);
         this.faces.push(this.viewport.getElementsByClassName('face front')[0]);
         this.faces.push(this.viewport.getElementsByClassName('face right')[0]);
@@ -150,23 +146,18 @@ var CubeView = (function (window, document) {
             }
         }
 
-
         this.options = {
             transDuration: "700ms",
             perspective: "800px",
             perspectiveOrigin: "80% 200px",
             onAnimationEnd: function (){},
             eventQueueSize: 5,
-            useTransition: false, //touchend시 transition으로 momuntum scrolling 수행
+            useTransition: false,
             tranTimingFunc: "cubic-bezier(0.21, 0.78, 0.4, 1.02)",
             transitionThreshold: 5,
             yOffset: 0,
             flatXLeftLimit: 300,
-            flatXRightLimit: -450,
-            enableOrientationEvent: false,
-            enableIdleAnimation: false,
-            idleAnimationType: "blink",
-            enableExtraGameCard: false
+            flatXRightLimit: -450
         };
 
         for ( i in options ) {
@@ -179,15 +170,14 @@ var CubeView = (function (window, document) {
         if (typeof this.options.viewportY !== "undefined") {
             this.viewportY = this.options.viewportY;
         }
-        //view port setting
+        // set perspective origin of viewport
         this.viewport.style[utils.style.perspectiveOrigin] = this.options.perspectiveOrigin;
-        // cube의 각 face를 setting
-        // 2014-11-21 배철민M 수정 : event1,event2 가 각각 front/top 위치 game 순위별로 나머지에 위치
+        //set initial card position and rotate degree
+        this.faces[0].style[utils.style.transform] = "rotateY(90deg) translateZ(200px)";//right
+        this.faces[1].style[utils.style.transform] = "rotateY(270deg) translateZ(200px)";//left
         this.faces[2].style[utils.style.transform] = "rotateX(90deg) translateZ(200px)";//top
         this.faces[3].style[utils.style.transform] = "translateZ(200px)";//front
-        this.faces[0].style[utils.style.transform] = "rotateY(90deg) translateZ(200px)";//right
         this.faces[4].style[utils.style.transform] = "rotateY(180deg) translateZ(200px)";//back
-        this.faces[1].style[utils.style.transform] = "rotateY(270deg) translateZ(200px)";//left
         this.faces[5].style[utils.style.transform] = "rotateX(270deg) translateZ(200px)";//bottom
 
         this.saveFaceStyles();
@@ -262,21 +252,16 @@ var CubeView = (function (window, document) {
         },
         posRecord: {
             start: {},
-            all: [],//move 발생할때 최고 5개를 저장하여 momentum animation에서 사용
+            all: [],
             last: {}
         },
-        //flat mode일때 x, y 좌표
-        //mode 변경시마다 매번 0,0으로 reset 됨
         flatX: 0,
         flatY: 0,
-        //현재 viewport X 좌표
         viewportX: -30,
-        //현재 viewport Y 좌표
         viewportY: -35,
         enabled: true,
-        //cube가 아닌 평면으로 변경되어 있는지 여부
+        //flat mode not in cube mode
         flattened: false,
-        //정식으로 start 했는지
         started: false,
         //touch 이벤트 시작
         _start: function (e) {
@@ -306,7 +291,6 @@ var CubeView = (function (window, document) {
                 this.stopIdleAnimation();
             }
         },
-        //touchmove 이벤트 처리. 실제 viewport를 움직임
         _translate: function (e) {
             var pos,
                 x,
@@ -334,7 +318,6 @@ var CubeView = (function (window, document) {
             this.posRecord.last.x = pos.pageX;
             this.posRecord.last.y = pos.pageY;
         },
-        //touchmove 이벤트 처리. 실제 viewport를 움직임
         _rotate: function (e) {
             var pos,
                 x,
@@ -379,7 +362,7 @@ var CubeView = (function (window, document) {
                 return v1 >= v2 ? true : false;
             }
         },
-        //실제 transform 을 설정
+        //cube rotation
         _setRotatePos: function(coords){
             if(!coords) {
                 return;
@@ -392,7 +375,7 @@ var CubeView = (function (window, document) {
             }
             this.cube.style[utils.style.transform] = "rotateX("+this.viewportX+"deg) rotateY("+this.viewportY+"deg)";
         },
-        //실제 flat mode일때 transform 을 설정
+        //translate position in a flat mode
         _setFlatPos: function(x){
             var posStr = "rotateX("+this.viewportX+"deg) rotateY("+this.viewportY+"deg)";
             if (this.options.flatXLeftLimit<x) {
@@ -417,7 +400,6 @@ var CubeView = (function (window, document) {
                 return;
             }
 
-            //FIX ME: 성능 최적화한후에 1로 나누는 경우이면 버려라
             var movementScaleFactor = 2.0;
 
             pageX = 0;
@@ -460,7 +442,6 @@ var CubeView = (function (window, document) {
                 return;
             }
 
-            //FIX ME: 성능 최적화한후에 1로 나누는 경우이면 버려라
             var movementScaleFactor = 2.0;
 
             pageX = 0;
@@ -556,7 +537,6 @@ var CubeView = (function (window, document) {
             }
             this._setRotatePos({x: x, y:y});
         },
-        //sensor 기울기 기록용 변수
         lastXMove: 0,
         _deviceOrientHandler: function(eventData){
             var sensorSensitivity = 10,
@@ -645,7 +625,6 @@ var CubeView = (function (window, document) {
 
             this.flattened = true;
         },
-        //flatten된 face들을 cube로 복원
         restoreCubic: function(){
             if (!this.flattened) {
                 return;
@@ -654,7 +633,6 @@ var CubeView = (function (window, document) {
             this.flattened = false;
             this.reset();
         },
-        //cubic과 flatten을 toggle
         toggleCubic: function(){
             if (this.flattened) {
                 this.restoreCubic();
@@ -662,7 +640,6 @@ var CubeView = (function (window, document) {
                 this.flattenCubic();
             }
         },
-        //face의 style 값을 저장
         saveFaceStyles: function(){
             var i;
 
@@ -671,7 +648,6 @@ var CubeView = (function (window, document) {
                 this.faceStyles.push(this.faces[i].style.cssText);
             }
         },
-        //face의 style값을 복원
         restoreFaceStyles: function(){
             var i;
 
@@ -679,14 +655,12 @@ var CubeView = (function (window, document) {
                 this.faces[i].style.cssText = this.faceStyles[i];
             }
         },
-        //화면에 대면중인 face 정보 축출
         getFrontFacingFaceInfo: function(){
-            var curXdeg = (this.viewportX+360)%360, //360 보다 작은 양수각으로 변환
+            var curXdeg = (this.viewportX+360)%360,
                 curYdeg = (this.viewportY+360)%360,
                 smallestVal,
                 faceIdx;
 
-            //현재 (x,y)deg와 가장 근접한 face를 찾아서 돌려준다
             var distances = initialFaceDeg.map(function(cVal, idx, array){
                 var xDiff = Math.min( Math.abs(cVal.x - curXdeg), Math.abs(cVal.x + 360 - curXdeg) ),
                     yDiff = Math.min( Math.abs(cVal.y - curYdeg), Math.abs(cVal.y + 360 - curYdeg) );
@@ -696,9 +670,6 @@ var CubeView = (function (window, document) {
             for (var i=0; i<distances.length; i++){
                 if (distances[i] === smallestVal) {
                     faceIdx = initialFaceDeg[i].faceIdx;
-                    //면이 정해지면, 해당 면중에 사용자 입장에서 올바로 보이는 각도를 찾아서 돌려준다
-                    //올바로 보이는 각도란, initialFaceDeg에서 각면의 복수개의 각들중에 가장 첫번째 저장된 값이다
-                    //그래서 아래 for loop에서는 주어진 index에서 가장 작은 위치로 찾아 내려간다
                     for(var j=i-1; j>=0; j--){
                         if (initialFaceDeg[j].faceIdx === faceIdx) {
                             i = j;
