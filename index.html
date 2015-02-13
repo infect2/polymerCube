@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Polymer Cube</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    <script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+    <link rel="import" href="elements/cube-element.html">
+</head>
+<body>
+    <cube-element mode="cube" owner="sangseok" loveyou="I hate you" imgSrc='{
+        "left": "img/card_2048.png",
+        "top": "img/card_2048.png",
+        "bottom": "img/card_2048.png",
+        "front": "img/card_2048.png",
+        "right": "img/card_2048.png",
+        "back": "img/card_2048.png"
+    }'>
+    </cube-element>
+    <cube-element mode="flat" owner="hanelee" loveyou="I do love you">
+    </cube-element>
+    <script>
+    document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+    </script>
+</body>
+</html>

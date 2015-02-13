@@ -1,0 +1,91 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<polymer-element name="cube-element" attributes="mode imgSrc owner loveyou">
+    <template>
+        <style>
+        :host {
+            display: block;
+            position: relative;
+            background-color: RGB(90,100,100);
+            padding: 0px;
+            width: 100%;
+            height: 400px;
+        }
+        </style>
+        <link rel="stylesheet" href="cube-element.css">
+        <span id="title">Not ready</span>
+        <span> {{loveyou}}</span>
+        <span> {{owner}}</span>
+        <nav class="nav-3d-list">
+            <div id="viewport" class="viewport">
+                <div class="cube scroll">
+                        <div id="left"   class="face card left">   <img src="../img/card_2048.png"> </div>
+                        <div id="bottom" class="face card bottom"> <img src="../img/card_baseball.png"> </div>
+                        <div id="right"  class="face card right">  <img src="../img/card_cashman.png"> </div>
+                        <div id="back"   class="face card back">   <img src="../img/card_cashpang.png"> </div>
+                        <div id="top"    class="face card top">    <img src="../img/card_polypop.png"> </div>
+                        <div id="front"  class="face card front">  <img src="../img/card_space2014.png"> </div>
+                </div>
+            </div>
+        </nav>
+    </template>
+    <script src="../js/cubeView.js"></script>
+    <script>
+    Polymer({
+        mode: "cube", //by default
+        owner: "sangseok",
+        cubeObj: undefined,
+        imgSrc: undefined,
+        ownerChanged: function () {
+            if(this.owner) {
+                this.owner = this.owner[0].toUpperCase() + this.owner.slice(1);
+            }
+        },
+        loveyou: "I will always love you",
+        ready: function () {
+            console.log("ready");
+            this.$.title.textContent = this.owner + " is ready";
+            that = this;
+            setTimeout(function(){
+                that.owner="cube2";
+                console.log("setTimeout");
+            }, 3000);
+            var ios = (/iphone OS/gi).test(navigator.appVersion);
+            if (ios) {
+                perspectiveOrigin = "130% 200px";
+            } else {
+                perspectiveOrigin = "80% 200px";
+            }
+            if (!!this.imgSrc) {
+                var imgSrc = JSON.parse(this.imgSrc)
+                var imgElements = this.$.viewport.getElementsByTagName('img');
+                var div, imgElm;
+                for (key in imgSrc) {
+                    div = this.$.viewport.getElementsByClassName(key);
+                    imgElm = div[0].getElementsByTagName('img');
+                    imgElm[0].src = imgSrc[key];
+                }
+            }
+            this.cubeObj = new CubeView(this.$.viewport, {
+                    viewportX: -30,
+                    viewportY: -35,
+                    transDuration: "500ms",
+                    perspectiveOrigin: perspectiveOrigin,
+                    useTransition: true,
+                    transitionThreshold: 5,//이거 절대 끄지 마시오. 클릭 이벤트 꼬임
+                    tranTimingFunc: "cubic-bezier(0.21, 0.78, 0.4, 1.02)",
+                    flattenDegLimit: 60,
+                    enableOrientationEvent: false,
+                    enableIdleAnimation: true,
+                    idleAnimationType: "blink",
+                    onAnimationEnd: function (){
+                        console.log("transition ends");
+                    }
+                });
+            if (this.mode !== "cube") {
+                this.cubeObj.toggleCubic();
+            }
+        }
+    });
+    </script>
+</polymer-element>
