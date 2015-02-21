@@ -12,6 +12,7 @@
     "test",
     "tests"
   ],
+  "keywords": ["Polymer", "web-components", "CSS3D", "HTML5"],
   "dependencies": {
     "polymer": "Polymer/polymer#~0.5.2"
   }
