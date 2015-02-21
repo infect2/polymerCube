@@ -1,2 +1,2 @@
 # polymerCube
-Polymer based CSS3D based Cube View
+Polymer version of a CSS3D based Cube View UI component
